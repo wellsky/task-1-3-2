@@ -5,35 +5,14 @@ fun main() {
 }
 
 fun calculateCommission(cardType: String = "Vk Pay", summ: Int, currentMonthSumm: Int = 0): Int {
-    var commission: Double = 0.0
-
-    when {
-        (cardType == "Vk Pay") -> {
-           // Ничего не меняем
-        }
-
-        ((cardType == "Visa") || (cardType == "Мир")) -> {
-            val commissionSize = 0.75 // В процентах
-            val minimumCommission = 35_00.0 // 35 руб. в копейках
-
-            commission = summ * commissionSize / 100 // Размер комиссии
-            if (commission < minimumCommission) commission = minimumCommission; // Если комиссия меньше минимума
-        }
-
-        ((cardType == "Mastercard") || (cardType == "Maestro")) -> {
-            val minFreeSumm = 300_00.0 // Минимальная сумма перевода без комиссии
-            val maxMonthFree = 75000_00.0 // Максимум в месяц без комиссии
-
-            if ((summ < minFreeSumm) || ((currentMonthSumm + summ) > maxMonthFree)) {
-                val commissionSize = 0.60  // В процентах
-                val additionalCommission = 20_00.0 // 20 руб. в копейках
-
-                commission = summ * commissionSize / 100 + additionalCommission// Размер комиссии
-            }
-        }
-
+    var commission: Double = when (cardType) {
+        "Vk Pay" -> 0.0
+        "Visa", "Мир" -> calculateVisaCommission(summ, currentMonthSumm)
+        "Mastercard", "Maestro" -> calculateMaestroCommission(summ, currentMonthSumm)
         else -> {
+            // Выбросить Exception, но мы их не проходили
             println("Неизвестный типа платежа")
+            0.0
         }
     }
 
@@ -42,4 +21,29 @@ fun calculateCommission(cardType: String = "Vk Pay", summ: Int, currentMonthSumm
     }
 
     return commission.toInt()
+}
+
+fun calculateVisaCommission(summ: Int, currentMonthSumm: Int = 0):Double {
+    val commissionSize = 0.75 // В процентах
+    val minimumCommission = 35_00.0 // 35 руб. в копейках
+
+    var commission = summ * commissionSize / 100 // Размер комиссии
+    if (commission < minimumCommission) commission = minimumCommission; // Если комиссия меньше минимум
+
+    return commission
+}
+
+fun calculateMaestroCommission(summ: Int, currentMonthSumm: Int = 0):Double {
+    val minFreeSumm = 300_00.0 // Минимальная сумма перевода без комиссии
+    val maxMonthFree = 75000_00.0 // Максимум в месяц без комиссии
+    var commission = 0.0
+
+    if ((summ < minFreeSumm) || ((currentMonthSumm + summ) > maxMonthFree)) {
+        val commissionSize = 0.60  // В процентах
+        val additionalCommission = 20_00.0 // 20 руб. в копейках
+
+        commission = summ * commissionSize / 100 + additionalCommission// Размер комиссии
+    }
+
+    return commission
 }
